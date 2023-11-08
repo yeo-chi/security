@@ -16,9 +16,9 @@ class UserService(
     override fun loadUserByUsername(userId: String?): UserDetails {
         require(!userId.isNullOrEmpty())
 
-        return userRepository.findByUserId(userId = userId)?.let {
-            User(it.id.toString(), it.password, listOf())
-        } ?: throw UsernameNotFoundException("회원을 찾을 수 없습니다.")
+        return userRepository.findByUserId(userId = userId)
+            ?.let { User(it.id.toString(), it.password, listOf()) }
+            ?: throw UsernameNotFoundException("회원을 찾을 수 없습니다.")
     }
 
     @Transactional
