@@ -4,12 +4,15 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.core.session.SessionRegistryImpl
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfiguration {
+class SecurityConfiguration(
+    private val sessionLogoutStrategy: SessionLogoutStrategy,
+) {
     @Bean
     fun filterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
         return httpSecurity
@@ -26,9 +29,21 @@ class SecurityConfiguration {
                     .defaultSuccessUrl("/")
                     .permitAll()
             }
+            .sessionManagement {
+                it.sessionFixation { sessionFixation ->
+                    sessionFixation.changeSessionId()
+                }
+                it.maximumSessions(1)
+                    .expiredSessionStrategy(sessionLogoutStrategy)
+                    .maxSessionsPreventsLogin(false)
+                    .sessionRegistry(sessionRegistry())
+            }
             .build()
     }
 
     @Bean
     fun bCryptPasswordEncoder() = BCryptPasswordEncoder()
+
+    @Bean
+    fun sessionRegistry() = SessionRegistryImpl()
 }
