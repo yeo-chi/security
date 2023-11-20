@@ -19,6 +19,11 @@ class UserEntity(
 
     val password: String,
 ) {
+
+    fun validPassword(password: String, passwordEncoder: BCryptPasswordEncoder) {
+        require(passwordEncoder.matches(password, this.password)) { "비밀번호가 일치하지 않습니다" }
+    }
+
     companion object {
         fun of(request: SignUpUserRequest, encoder: BCryptPasswordEncoder): UserEntity {
             return UserEntity(

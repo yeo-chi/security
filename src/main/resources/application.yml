@@ -11,3 +11,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+jwt:
+  secret-key: eyJhbGciOiJIUzUxMiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcwMDQ2NDU2MiwiaWF0IjoxNzAwNDY0NTYyfQ.rUfZOizvo8axjls865KSB4NvzprcF9c4d5OID_aMuGeMBX_Z6YYKG8strJh3QZTVnc02pRC7lP6d0dcBHi5t0A
+  issuer: yeo-chi
+  expiration-second: 300
