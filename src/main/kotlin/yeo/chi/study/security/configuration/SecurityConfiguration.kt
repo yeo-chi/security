@@ -7,10 +7,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy.STATELESS
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfiguration {
+class SecurityConfiguration(
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+) {
     @Bean
     fun filterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
         return httpSecurity
@@ -20,13 +23,13 @@ class SecurityConfiguration {
                     "/swagger-ui/**",
                     "/v3/**",
                     "/api/v1/users/signIn",
-                    "/api/v1/users")
+                    "/api/v1/users"
+                )
                     .permitAll()
                     .anyRequest().authenticated()
             }
-            .sessionManagement {
-                it.sessionCreationPolicy(STATELESS)
-            }
+            .sessionManagement { it.sessionCreationPolicy(STATELESS) }
+            .addFilterBefore(jwtAuthenticationFilter, BasicAuthenticationFilter::class.java)
             .build()
     }
 

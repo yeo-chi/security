@@ -34,5 +34,14 @@ class TokenProvider(
         }
     }
 
-    private fun getIdentificationInformation(userEntity: UserEntity) = userEntity.userId + ":" + Role.USER
+    private fun getIdentificationInformation(userEntity: UserEntity) = "${userEntity.id}:${Role.USER}"
+
+    fun validToken(token: String): String {
+        return Jwts.parser()
+            .verifyWith(SecretKeySpec(secretKey.toByteArray(), SignatureAlgorithm.HS512.jcaName))
+            .build()
+            .parseSignedClaims(token)
+            .payload
+            .subject
+    }
 }

@@ -54,7 +54,7 @@ class UserApiController(
     }
 
     @GetMapping("me")
-    fun getMe(principal: Principal) {
-        println(principal.name)
+    fun getMe(principal: Principal): String {
+        return principal.name
     }
 }
