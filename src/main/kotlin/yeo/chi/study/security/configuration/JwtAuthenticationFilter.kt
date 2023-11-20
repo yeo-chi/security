@@ -19,19 +19,23 @@ class JwtAuthenticationFilter(
 ) : OncePerRequestFilter() {
     private final val ANONYMOUS: String = "ANONYMOUS"
 
+    private final val REISSUE_URI: String = "api/v1/users/reIssue"
+
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        val token = parseBearerToken(request)
-        val user = parseIdentificationInformation(token)
+        if (!StringUtils.equals(request.requestURI, REISSUE_URI)) {
+            val token = parseBearerToken(request)
+            val user = parseIdentificationInformation(token)
 
-        UsernamePasswordAuthenticationToken(user, token, user.authorities)
-            .apply {
-                details = WebAuthenticationDetails(request)
-                SecurityContextHolder.getContext().authentication = this
-            }
+            UsernamePasswordAuthenticationToken(user, token, user.authorities)
+                .apply {
+                    details = WebAuthenticationDetails(request)
+                    SecurityContextHolder.getContext().authentication = this
+                }
+        }
 
         filterChain.doFilter(request, response)
     }

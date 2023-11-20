@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import yeo.chi.study.security.configuration.TokenProvider
+import yeo.chi.study.security.controller.api.data.ReIssueRequest
 import yeo.chi.study.security.controller.api.data.SignInUserRequest
 import yeo.chi.study.security.controller.api.data.SignUpUserRequest
 import yeo.chi.study.security.persistent.entity.UserEntity
@@ -41,11 +42,34 @@ class UserApiController(
     @PostMapping("signIn")
     @ResponseStatus(OK)
     fun signIn(@RequestBody signInUserRequest: SignInUserRequest, httpServletResponse: HttpServletResponse) {
+        require(signInUserRequest.userId.isNotEmpty() && signInUserRequest.password.isNotEmpty())
+
+        with(userService.signIn(request = signInUserRequest)) {
+            httpServletResponse.addCookie(
+                Cookie("access_token", accessToken).apply {
+                    path = "/"
+                    isHttpOnly = true
+                }
+            )
+
+            httpServletResponse.addCookie(
+                Cookie("refresh_token", refreshToken).apply {
+                    path = "/"
+                    isHttpOnly = true
+                }
+            )
+        }
+    }
+
+    @PostMapping("reIssue")
+    @ResponseStatus(OK)
+    fun reIssue(@RequestBody reIssueRequest: ReIssueRequest, httpServletResponse: HttpServletResponse) {
+        require(reIssueRequest.accessToken.isNotEmpty() && reIssueRequest.refreshToken.isNotEmpty())
+
         httpServletResponse.addCookie(
-            userService.signIn(request = signInUserRequest)
-                .let { tokenProvider.createToken(it) }
+            tokenProvider.reIssue(reIssueRequest = reIssueRequest)
                 .let {
-                    Cookie("token", it).apply {
+                    Cookie("access_token", it.accessToken).apply {
                         path = "/"
                         isHttpOnly = true
                     }
