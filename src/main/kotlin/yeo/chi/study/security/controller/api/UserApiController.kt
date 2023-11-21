@@ -1,6 +1,5 @@
 package yeo.chi.study.security.controller.api
 
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.OK
@@ -45,19 +44,8 @@ class UserApiController(
         require(signInUserRequest.userId.isNotEmpty() && signInUserRequest.password.isNotEmpty())
 
         with(userService.signIn(request = signInUserRequest)) {
-            httpServletResponse.addCookie(
-                Cookie("access_token", accessToken).apply {
-                    path = "/"
-                    isHttpOnly = true
-                }
-            )
-
-            httpServletResponse.addCookie(
-                Cookie("refresh_token", refreshToken).apply {
-                    path = "/"
-                    isHttpOnly = true
-                }
-            )
+            httpServletResponse.addHeader("authentication", accessToken)
+            httpServletResponse.addHeader("refreshToken", refreshToken)
         }
     }
 
@@ -66,15 +54,9 @@ class UserApiController(
     fun reIssue(@RequestBody reIssueRequest: ReIssueRequest, httpServletResponse: HttpServletResponse) {
         require(reIssueRequest.accessToken.isNotEmpty() && reIssueRequest.refreshToken.isNotEmpty())
 
-        httpServletResponse.addCookie(
-            tokenProvider.reIssue(reIssueRequest = reIssueRequest)
-                .let {
-                    Cookie("access_token", it.accessToken).apply {
-                        path = "/"
-                        isHttpOnly = true
-                    }
-                }
-        )
+        tokenProvider.reIssue(reIssueRequest = reIssueRequest).apply {
+            httpServletResponse.addHeader("authentication", accessToken)
+        }
     }
 
     @GetMapping("me")
