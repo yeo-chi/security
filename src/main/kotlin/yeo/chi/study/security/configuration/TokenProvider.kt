@@ -1,5 +1,6 @@
 package yeo.chi.study.security.configuration
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.beans.factory.annotation.Value
@@ -22,10 +23,11 @@ class TokenProvider(
     @Value("\${jwt.expiration-second}")
     private val expirationSecond: Long,
 ) {
-    fun createToken(userEntity: UserEntity): String {
+    fun createToken(userEntity: UserEntity, uuid: String): String {
         return userEntity.let {
             Jwts.builder()
                 .subject(getIdentificationInformation(it))
+                .claim("identify", uuid)
                 .issuer(issuer)
                 .issuedAt(Timestamp.valueOf(now()))
                 .expiration(Date.from(Instant.now().plusSeconds(expirationSecond)))
@@ -34,14 +36,20 @@ class TokenProvider(
         }
     }
 
-    private fun getIdentificationInformation(userEntity: UserEntity) = "${userEntity.id}:${Role.USER}"
+    private fun getIdentificationInformation(userEntity: UserEntity) =
+        "${userEntity.id}:${Role.USER}"
 
-    fun validToken(token: String): String {
+    fun getSubject(token: String, identify: String): String {
+        return getClaims(token = token).also {
+            check(it["identify"].toString() == identify)
+        }.subject
+    }
+
+    private fun getClaims(token: String): Claims {
         return Jwts.parser()
             .verifyWith(SecretKeySpec(secretKey.toByteArray(), SignatureAlgorithm.HS512.jcaName))
             .build()
             .parseSignedClaims(token)
             .payload
-            .subject
     }
 }

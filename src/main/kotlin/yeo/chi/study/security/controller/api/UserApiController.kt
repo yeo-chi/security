@@ -17,6 +17,7 @@ import yeo.chi.study.security.controller.api.data.SignUpUserRequest
 import yeo.chi.study.security.persistent.entity.UserEntity
 import yeo.chi.study.security.service.UserService
 import java.security.Principal
+import java.util.UUID
 
 @RestController
 @RequestMapping("api/v1/users")
@@ -40,17 +41,21 @@ class UserApiController(
 
     @PostMapping("signIn")
     @ResponseStatus(OK)
-    fun signIn(@RequestBody signInUserRequest: SignInUserRequest, httpServletResponse: HttpServletResponse) {
-        httpServletResponse.addCookie(
-            userService.signIn(request = signInUserRequest)
-                .let { tokenProvider.createToken(it) }
-                .let {
-                    Cookie("token", it).apply {
-                        path = "/"
-                        isHttpOnly = true
-                    }
+    fun signIn(
+        @RequestBody signInUserRequest: SignInUserRequest,
+        httpServletResponse: HttpServletResponse,
+    ) {
+        val uuid = UUID.randomUUID().toString()
+
+        userService.signIn(request = signInUserRequest).let {
+            httpServletResponse.addHeader("Authentication", tokenProvider.createToken(it, uuid))
+            httpServletResponse.addCookie(
+                Cookie("identify", uuid).apply {
+                    path = "/"
+                    isHttpOnly = true
                 }
-        )
+            )
+        }
     }
 
     @GetMapping("me")
